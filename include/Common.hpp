@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <bit>
 #include <type_traits>

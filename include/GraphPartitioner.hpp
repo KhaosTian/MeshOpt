@@ -187,8 +187,8 @@ inline void GraphPartitioner::BuildLocalityLinks(
     FuncType&                 GetCenter
 ) {
     std::vector<uint32> sort_keys; // 存储每个三角形质心的莫顿码
-    sort_keys.reserve(num_elements);
-    sorted_to.reserve(num_elements);
+    sort_keys.resize(sort_keys.size() + num_elements);
+    sorted_to.resize(sorted_to.size() + num_elements);
 
     const bool enable_groups = !group_indices.empty();
 
@@ -222,7 +222,7 @@ inline void GraphPartitioner::BuildLocalityLinks(
 
     // 每个三角形都有一个range记录所属联通区域的起始和结束
     std::vector<Range> island_ranges;
-    island_ranges.reserve(num_elements);
+    island_ranges.resize(island_ranges.size() + num_elements);
 
     {
         uint32 curr_range  = 0;
@@ -326,6 +326,15 @@ inline GraphPartitioner::GraphPartitioner(uint32 num_elements, int32 min_partiti
 }
 
 inline GraphPartitioner::GraphData* GraphPartitioner::NewGraph(uint32 num_adjacency) const {
+    num_adjacency += locality_links.size();
+
+    GraphData* RESTRICT graph = new GraphPartitioner::GraphData;
+    graph->offset             = 0;
+    graph->num                = num_elements;
+    graph->adjacency.reserve(num_adjacency);
+    graph->adjacency_cost.reserve(num_adjacency);
+    graph->adjacency_offset.resize(num_elements + 1);
+
     return nullptr;
 }
 

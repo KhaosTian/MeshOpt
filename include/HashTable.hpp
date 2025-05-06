@@ -31,7 +31,7 @@ protected:
     uint32 m_hash_mask;
     uint32 m_index_size;
 
-    uint32* m_hashes; // 哈希数组中存储每个桶的链表头节点索引
+    uint32* m_head_buckets; // 哈希数组中存储每个桶的链表头节点索引
     uint32* m_next_indices; // 存储从index可以达到的下一个索引
 
     static uint32 EmptyHash[1];
@@ -43,7 +43,7 @@ inline HashTable::HashTable(uint32 hash_size, uint32 index_size):
     m_hash_size(hash_size),
     m_hash_mask(0),
     m_index_size(index_size),
-    m_hashes(EmptyHash),
+    m_head_buckets(EmptyHash),
     m_next_indices(nullptr) {
     // 确保哈希表的大小大于0且是2的幂次方
     CHECK(m_hash_size > 0);
@@ -53,10 +53,10 @@ inline HashTable::HashTable(uint32 hash_size, uint32 index_size):
     if (m_index_size) {
         m_hash_mask = m_hash_size - 1;
         // 分配哈希桶的头索引和链表
-        m_hashes       = new uint32[m_index_size];
+        m_head_buckets = new uint32[m_index_size];
         m_next_indices = new uint32[m_index_size];
         // 初始化数组元素为0xff
-        std::memset(m_hashes, 0xff, m_hash_size * sizeof(uint32));
+        std::memset(m_head_buckets, 0xff, m_hash_size * sizeof(uint32));
     }
 }
 
@@ -64,14 +64,14 @@ inline HashTable::HashTable(const HashTable& other):
     m_hash_size(other.m_hash_size),
     m_hash_mask(other.m_hash_mask),
     m_index_size(other.m_index_size),
-    m_hashes(EmptyHash), // 让未初始化或已释放的哈希表也能安全响应
+    m_head_buckets(EmptyHash), // 让未初始化或已释放的哈希表也能安全响应
     m_next_indices(nullptr) {
     if (m_index_size) {
-        m_hashes       = new uint32[m_hash_size];
+        m_head_buckets = new uint32[m_hash_size];
         m_next_indices = new uint32[m_index_size];
 
         // 拷贝内存
-        std::memcpy(m_hashes, other.m_hashes, m_hash_size * sizeof(uint32));
+        std::memcpy(m_head_buckets, other.m_head_buckets, m_hash_size * sizeof(uint32));
         std::memcpy(m_next_indices, other.m_next_indices, m_index_size * sizeof(uint32));
     }
 }
@@ -80,12 +80,12 @@ inline HashTable::HashTable(HashTable&& other) noexcept:
     m_hash_size(other.m_hash_size),
     m_hash_mask(other.m_hash_mask),
     m_index_size(other.m_index_size),
-    m_hashes(other.m_hashes),
+    m_head_buckets(other.m_head_buckets),
     m_next_indices(other.m_next_indices) {
     other.m_hash_size    = 0;
     other.m_hash_mask    = 0;
     other.m_index_size   = 0;
-    other.m_hashes       = EmptyHash;
+    other.m_head_buckets = EmptyHash;
     other.m_next_indices = m_next_indices;
 }
 
@@ -99,15 +99,15 @@ inline HashTable& HashTable::operator=(const HashTable& other) {
     m_hash_size    = other.m_hash_size;
     m_hash_mask    = other.m_hash_mask;
     m_index_size   = other.m_index_size;
-    m_hashes       = EmptyHash;
+    m_head_buckets = EmptyHash;
     m_next_indices = nullptr;
 
     if (m_index_size) {
-        m_hashes       = new uint32[m_hash_size];
+        m_head_buckets = new uint32[m_hash_size];
         m_next_indices = new uint32[m_index_size];
 
         // 拷贝内存
-        std::memcpy(m_hashes, other.m_hashes, m_hash_size * sizeof(uint32));
+        std::memcpy(m_head_buckets, other.m_head_buckets, m_hash_size * sizeof(uint32));
         std::memcpy(m_next_indices, other.m_next_indices, m_index_size * sizeof(uint32));
     }
 
@@ -118,13 +118,13 @@ inline HashTable& HashTable::operator=(HashTable&& other) noexcept {
     m_hash_size    = other.m_hash_size;
     m_hash_mask    = other.m_hash_mask;
     m_index_size   = other.m_index_size;
-    m_hashes       = other.m_hashes;
+    m_head_buckets = other.m_head_buckets;
     m_next_indices = other.m_next_indices;
 
     other.m_hash_size    = 0;
     other.m_hash_mask    = 0;
     other.m_index_size   = 0;
-    other.m_hashes       = EmptyHash;
+    other.m_head_buckets = EmptyHash;
     other.m_next_indices = m_next_indices;
     return *this;
 }
@@ -132,7 +132,7 @@ inline HashTable& HashTable::operator=(HashTable&& other) noexcept {
 inline void HashTable::Clear() const {
     // 切断从桶到链表的访问入口
     if (m_index_size) {
-        std::memset(m_hashes, 0xff, m_hash_size * sizeof(uint32));
+        std::memset(m_head_buckets, 0xff, m_hash_size * sizeof(uint32));
     }
 }
 
@@ -141,8 +141,8 @@ inline void HashTable::Free() {
         m_hash_mask  = 0;
         m_index_size = 0;
 
-        delete[] m_hashes;
-        m_hashes = EmptyHash;
+        delete[] m_head_buckets;
+        m_head_buckets = EmptyHash;
 
         delete[] m_next_indices;
         m_next_indices = nullptr;
@@ -166,7 +166,7 @@ inline void HashTable::Resize(uint32 new_index_size) {
 // 返回key对应的链表的第一个索引
 inline uint32 HashTable::First(uint32 key) const {
     key &= m_hash_mask;
-    return m_hashes[key];
+    return m_head_buckets[key];
 }
 
 // 返回链表当前索引后的下一个索引
@@ -194,9 +194,9 @@ inline void HashTable::Add(uint32 key, uint32 index) {
 
     // 使用头插法处理哈希冲突，构建链表
     // m_Hash[key]存储的是头节点的索引
-    m_next_indices[index] = m_hashes[key];
+    m_next_indices[index] = m_head_buckets[key];
     // 更新链表头为新添加的元素，从m_Hash[key]可以访问到整个链表上的所有元素:
-    m_hashes[key] = index;
+    m_head_buckets[key] = index;
 }
 
 inline void HashTable::AddConcurrent(uint32 key, uint32 index) const {
@@ -205,7 +205,7 @@ inline void HashTable::AddConcurrent(uint32 key, uint32 index) const {
     key &= m_hash_mask;
     // 使用原子交换操作实现线程安全的头插法
     m_next_indices[index] = std::atomic_exchange( // 将一个原子对象的值替换为新值并返回替换前的旧值
-        reinterpret_cast<std::atomic<uint32>*>(&m_hashes[key]), // 将m_Hash[key]视为原子变量
+        reinterpret_cast<std::atomic<uint32>*>(&m_head_buckets[key]), // 将m_Hash[key]视为原子变量
         index // 原子地读取m_Hash[key]的当前值，并将其替换为新的index
     ); // 将原始值设置为新元素的next指针
 }
@@ -218,14 +218,14 @@ inline void HashTable::Remove(uint32 key, uint32 index) const {
     key &= m_hash_mask;
 
     // 如果index正好是该key桶的头节点
-    if (m_hashes[key] == index) {
+    if (m_head_buckets[key] == index) {
         // 将后一个节点设为头节点即可
-        m_hashes[key] = m_next_indices[index];
+        m_head_buckets[key] = m_next_indices[index];
         return;
     }
 
     // 从头节点开始遍历
-    for (uint32 i = m_hashes[key]; IsValid(i); i = m_next_indices[i]) {
+    for (uint32 i = m_head_buckets[key]; IsValid(i); i = m_next_indices[i]) {
         if (m_next_indices[i] == index) // 找到该节点
         {
             m_next_indices[i] = m_next_indices[index]; // 指向下下一个节点即可

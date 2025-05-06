@@ -26,7 +26,7 @@ inline DisjointSet::DisjointSet(uint32 size) {
 }
 
 inline void DisjointSet::Init(uint32 size) {
-    m_parents.reserve(size);
+    m_parents.resize(size);
     for (uint32 i = 0; i < size; i++) {
         m_parents[i] = i; // 初始化每个节点的父节点是自己
     }
@@ -40,7 +40,7 @@ inline void DisjointSet::AddDefaulted(uint32 num) {
     uint32 start = m_parents.size();
     uint32 end   = start + num;
 
-    m_parents.reserve(end);
+    m_parents.resize(end);
 
     for (uint32 i = start; i < end; i++) {
         m_parents[i] = i;
