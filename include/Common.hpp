@@ -34,7 +34,7 @@ using uint64 = uint64_t;
 
 using ErrorHandler = void (*)(const char*, const char*, int, const char*);
 
-FORCEINLINE static void DefaultErrorHandler(const char* expr, const char* file, int line, const char* msg = nullptr) {
+inline static void DefaultErrorHandler(const char* expr, const char* file, int line, const char* msg = nullptr) {
     std::fprintf(stderr, "Assertion Failed:\n");
     std::fprintf(stderr, "  Expression: %s\n", expr);
     std::fprintf(stderr, "  File:       %s\n", file);
@@ -58,7 +58,7 @@ static ErrorHandler g_ErrorHandler = &DefaultErrorHandler;
         } \
     } while (0)
 
-FORCEINLINE static uint32 MurmurFinalize32(uint32 hash) {
+inline static uint32 MurmurFinalize32(uint32 hash) {
     hash ^= hash >> 16;
     hash *= 0x85ebca6b;
     hash ^= hash >> 13;
@@ -67,7 +67,7 @@ FORCEINLINE static uint32 MurmurFinalize32(uint32 hash) {
     return hash;
 }
 
-FORCEINLINE static uint32 Murmur32(std::initializer_list<uint32> init_list) {
+inline static uint32 Murmur32(std::initializer_list<uint32> init_list) {
     uint32 hash = 0;
     for (auto element: init_list) {
         element *= 0xcc9e2d51;

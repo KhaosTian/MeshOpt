@@ -14,7 +14,7 @@ struct EdgeHash {
     void ForAllMatching(int32 edge_index, bool need_add, FuncType1&& GetPosition, FuncType2&& Function);
 };
 
-FORCEINLINE static uint32 HashPosition(const Vector3f& position) {
+inline static uint32 HashPosition(const Vector3f& position) {
     auto ToUint = [](float f) {
         union {
             float  f;
@@ -27,14 +27,14 @@ FORCEINLINE static uint32 HashPosition(const Vector3f& position) {
     return Murmur32({ ToUint(position.x), ToUint(position.y), ToUint(position.z) });
 }
 
-FORCEINLINE static uint32 Cycle3(uint32 value) {
+inline static uint32 Cycle3(uint32 value) {
     uint32 value_mod3      = value % 3;
     uint32 next_value_mod3 = (1 << value_mod3) & 3;
     return value - value_mod3 + next_value_mod3;
 }
 
 template<typename FuncType>
-FORCEINLINE void EdgeHash::AddConcurrent(int32 edge_index, FuncType&& GetPosition) {
+inline void EdgeHash::AddConcurrent(int32 edge_index, FuncType&& GetPosition) {
     // 根据边索引获取坐标和其相邻坐标
     const Vector3f position0 = GetPosition(edge_index);
     const Vector3f position1 = GetPosition(Cycle3(edge_index));
@@ -53,8 +53,7 @@ FORCEINLINE void EdgeHash::AddConcurrent(int32 edge_index, FuncType&& GetPositio
 // 匹配所有与自己共享顶点但是方向相反的边
 template<typename FuncType1, typename FuncType2>
     requires std::invocable<FuncType1, int32> && std::same_as<std::invoke_result_t<FuncType1, int32>, Vector3f>
-FORCEINLINE void
-EdgeHash::ForAllMatching(int32 edge_index, bool need_add, FuncType1&& GetPosition, FuncType2&& Function) {
+inline void EdgeHash::ForAllMatching(int32 edge_index, bool need_add, FuncType1&& GetPosition, FuncType2&& Function) {
     // 根据边索引获取坐标和其相邻坐标
     const Vector3f position0 = GetPosition(edge_index);
     const Vector3f position1 = GetPosition(Cycle3(edge_index));

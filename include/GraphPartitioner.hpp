@@ -62,7 +62,7 @@ public:
     std::multimap<int32, uint32> locality_links;
 };
 
-FORCEINLINE static constexpr uint32 MorotonCode3(uint32 x) {
+inline static constexpr uint32 MorotonCode3(uint32 x) {
     // 莫顿码只处理0到1023，即2的10次方，所以使用掩码过滤掉高位的值
     x &= 0x000003ff; //00000000 00000000 00000011 11111111
     x = (x ^ (x << 16)) & 0xff0000ff; //11111111 00000000 00000000 11111111
@@ -72,7 +72,7 @@ FORCEINLINE static constexpr uint32 MorotonCode3(uint32 x) {
     return x;
 }
 
-FORCEINLINE static constexpr uint32 ReverseMortonCode3(uint32 x) {
+inline static constexpr uint32 ReverseMortonCode3(uint32 x) {
     x &= 0x09249249;
     x = (x ^ (x >> 2)) & 0x030c30c3;
     x = (x ^ (x >> 4)) & 0x0300f00f;
@@ -82,7 +82,7 @@ FORCEINLINE static constexpr uint32 ReverseMortonCode3(uint32 x) {
 }
 
 template<class FuncType>
-FORCEINLINE static void RadixSort32(uint32* RESTRICT dst, uint32* RESTRICT src, uint32 num, FuncType&& SortKey) {
+inline static void RadixSort32(uint32* RESTRICT dst, uint32* RESTRICT src, uint32 num, FuncType&& SortKey) {
     // 将莫顿码分割为低10位、中11位和高11位，对应1024个桶，2048个桶，2048个桶
     uint32 histograms[1024 + 2048 + 2048];
 
@@ -174,13 +174,13 @@ FORCEINLINE static void RadixSort32(uint32* RESTRICT dst, uint32* RESTRICT src, 
     }
 }
 
-FORCEINLINE static float MaxComponent(Vector3f v) {
+inline static float MaxComponent(Vector3f v) {
     return (v.x > v.y) ? (v.x > v.z ? v.x : v.z) : (v.y > v.z ? v.y : v.z);
 }
 
 // 在空间上建立三角形的邻近关系
 template<typename FuncType>
-FORCEINLINE void GraphPartitioner::BuildLocalityLinks(
+inline void GraphPartitioner::BuildLocalityLinks(
     DisjointSet&              disjoint_set,
     const Bounds3f&           bounds,
     const std::vector<int32>& group_indices,
@@ -322,28 +322,27 @@ FORCEINLINE void GraphPartitioner::BuildLocalityLinks(
     }
 }
 
-FORCEINLINE
-GraphPartitioner::GraphPartitioner(uint32 num_elements, int32 min_partition_size, int32 max_partition_size) {
+inline GraphPartitioner::GraphPartitioner(uint32 num_elements, int32 min_partition_size, int32 max_partition_size) {
 }
 
-FORCEINLINE GraphPartitioner::GraphData* GraphPartitioner::NewGraph(uint32 num_adjacency) const {
+inline GraphPartitioner::GraphData* GraphPartitioner::NewGraph(uint32 num_adjacency) const {
     return nullptr;
 }
 
-FORCEINLINE void GraphPartitioner::AddAdjaceny(GraphData* graph, uint32 adj_index, idx_t cost) {
+inline void GraphPartitioner::AddAdjaceny(GraphData* graph, uint32 adj_index, idx_t cost) {
 }
 
-FORCEINLINE void GraphPartitioner::AddLocalityLinks(GraphData* graph, uint32 index, idx_t cost) {
+inline void GraphPartitioner::AddLocalityLinks(GraphData* graph, uint32 index, idx_t cost) {
 }
 
-FORCEINLINE void GraphPartitioner::Partition(GraphData* graph) {
+inline void GraphPartitioner::Partition(GraphData* graph) {
 }
 
-FORCEINLINE void GraphPartitioner::ParititionStrict(GraphData* graph, bool enable_threaded) {
+inline void GraphPartitioner::ParititionStrict(GraphData* graph, bool enable_threaded) {
 }
 
-FORCEINLINE void GraphPartitioner::BisectGraph(GraphData* graph, GraphData* child_graphs[2]) {
+inline void GraphPartitioner::BisectGraph(GraphData* graph, GraphData* child_graphs[2]) {
 }
 
-FORCEINLINE void GraphPartitioner::RecursiveBisectGraph(GraphData* graph) {
+inline void GraphPartitioner::RecursiveBisectGraph(GraphData* graph) {
 }

@@ -37,9 +37,9 @@ protected:
     static uint32 EmptyHash[1];
 };
 
-uint32 HashTable::EmptyHash[1] = { ~0u };
+inline uint32 HashTable::EmptyHash[1] = { ~0u };
 
-FORCEINLINE HashTable::HashTable(uint32 hash_size, uint32 index_size):
+inline HashTable::HashTable(uint32 hash_size, uint32 index_size):
     m_hash_size(hash_size),
     m_hash_mask(0),
     m_index_size(index_size),
@@ -60,7 +60,7 @@ FORCEINLINE HashTable::HashTable(uint32 hash_size, uint32 index_size):
     }
 }
 
-FORCEINLINE HashTable::HashTable(const HashTable& other):
+inline HashTable::HashTable(const HashTable& other):
     m_hash_size(other.m_hash_size),
     m_hash_mask(other.m_hash_mask),
     m_index_size(other.m_index_size),
@@ -76,7 +76,7 @@ FORCEINLINE HashTable::HashTable(const HashTable& other):
     }
 }
 
-FORCEINLINE HashTable::HashTable(HashTable&& other) noexcept:
+inline HashTable::HashTable(HashTable&& other) noexcept:
     m_hash_size(other.m_hash_size),
     m_hash_mask(other.m_hash_mask),
     m_index_size(other.m_index_size),
@@ -89,7 +89,7 @@ FORCEINLINE HashTable::HashTable(HashTable&& other) noexcept:
     other.m_next_indices = m_next_indices;
 }
 
-FORCEINLINE HashTable& HashTable::operator=(const HashTable& other) {
+inline HashTable& HashTable::operator=(const HashTable& other) {
     if (this == &other) { // 显式处理自赋值
         return *this;
     }
@@ -114,7 +114,7 @@ FORCEINLINE HashTable& HashTable::operator=(const HashTable& other) {
     return *this;
 }
 
-FORCEINLINE HashTable& HashTable::operator=(HashTable&& other) noexcept {
+inline HashTable& HashTable::operator=(HashTable&& other) noexcept {
     m_hash_size    = other.m_hash_size;
     m_hash_mask    = other.m_hash_mask;
     m_index_size   = other.m_index_size;
@@ -129,14 +129,14 @@ FORCEINLINE HashTable& HashTable::operator=(HashTable&& other) noexcept {
     return *this;
 }
 
-FORCEINLINE void HashTable::Clear() const {
+inline void HashTable::Clear() const {
     // 切断从桶到链表的访问入口
     if (m_index_size) {
         std::memset(m_hashes, 0xff, m_hash_size * sizeof(uint32));
     }
 }
 
-FORCEINLINE void HashTable::Free() {
+inline void HashTable::Free() {
     if (m_index_size) {
         m_hash_mask  = 0;
         m_index_size = 0;
@@ -149,7 +149,7 @@ FORCEINLINE void HashTable::Free() {
     }
 }
 
-FORCEINLINE void HashTable::Resize(uint32 new_index_size) {
+inline void HashTable::Resize(uint32 new_index_size) {
     if (new_index_size == m_index_size) return;
     if (new_index_size == 0 || m_index_size == 0) return;
 
@@ -164,25 +164,25 @@ FORCEINLINE void HashTable::Resize(uint32 new_index_size) {
 }
 
 // 返回key对应的链表的第一个索引
-FORCEINLINE uint32 HashTable::First(uint32 key) const {
+inline uint32 HashTable::First(uint32 key) const {
     key &= m_hash_mask;
     return m_hashes[key];
 }
 
 // 返回链表当前索引后的下一个索引
-FORCEINLINE uint32 HashTable::Next(uint32 index) const {
+inline uint32 HashTable::Next(uint32 index) const {
     CHECK(index < m_index_size);
     // 避免链表节点自引用导致的无限循环
     CHECK(m_next_indices[index] != index);
     return m_next_indices[index];
 }
 
-FORCEINLINE bool HashTable::IsValid(uint32 index) const {
+inline bool HashTable::IsValid(uint32 index) const {
     return index != ~0u;
 }
 
 // key决定元素放入哪个桶，index决定数据在外部数组中的索引位置，HashTable本身不存储数据，只存储索引
-FORCEINLINE void HashTable::Add(uint32 key, uint32 index) {
+inline void HashTable::Add(uint32 key, uint32 index) {
     // 如果提供的索引超出当前哈希表容量，动态扩容
     if (index >= m_index_size) {
         // 新容量取32和(index+1)向上取整到2的幂中的较大值
@@ -199,7 +199,7 @@ FORCEINLINE void HashTable::Add(uint32 key, uint32 index) {
     m_hashes[key] = index;
 }
 
-FORCEINLINE void HashTable::AddConcurrent(uint32 key, uint32 index) const {
+inline void HashTable::AddConcurrent(uint32 key, uint32 index) const {
     CHECK(index < m_index_size);
 
     key &= m_hash_mask;
@@ -210,7 +210,7 @@ FORCEINLINE void HashTable::AddConcurrent(uint32 key, uint32 index) const {
     ); // 将原始值设置为新元素的next指针
 }
 
-FORCEINLINE void HashTable::Remove(uint32 key, uint32 index) const {
+inline void HashTable::Remove(uint32 key, uint32 index) const {
     if (index >= m_index_size) {
         return;
     }
