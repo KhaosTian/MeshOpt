@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
-#include "HashTable.h"
+#include "Common.hpp"
+#include "HashTable.hpp"
 
 struct EdgeHash {
     HashTable hash_table {};

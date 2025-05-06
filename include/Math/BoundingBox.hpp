@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "VectorMath.h"
+#include "VectorMath.hpp"
 
 //
 // Copyright (c) Microsoft. All rights reserved.
@@ -17,20 +17,14 @@
 
 #pragma once
 
-#include "VectorMath.h"
+#include "VectorMath.hpp"
 
 namespace Math {
 class AxisAlignedBox {
 public:
-    AxisAlignedBox():
-        m_min(FLT_MAX, FLT_MAX, FLT_MAX),
-        m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX) {
-    }
+    AxisAlignedBox(): m_min(FLT_MAX, FLT_MAX, FLT_MAX), m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX) {}
 
-    AxisAlignedBox(Vector3 min, Vector3 max):
-        m_min(min),
-        m_max(max) {
-    }
+    AxisAlignedBox(Vector3 min, Vector3 max): m_min(min), m_max(max) {}
 
     void AddPoint(Vector3 point) {
         m_min = Vector3::Min(point, m_min);
@@ -56,6 +50,5 @@ private:
     Vector3 m_max;
 };
 } // namespace Math
-
 
 using Bounds3f = Math::AxisAlignedBox;

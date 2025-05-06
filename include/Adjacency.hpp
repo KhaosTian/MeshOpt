@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 struct Adjacency {
     // 存储每个边的一个直接邻接边，-1表示没有直接邻接

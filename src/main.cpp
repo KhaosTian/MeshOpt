@@ -1,12 +1,12 @@
-#include "Common.h"
-#include "Cluster.h"
-#include "Parallel.h"
-#include "StridedView.h"
-#include "EdgeHash.h"
-#include "VectorMath.h"
-#include "Adjacency.h"
-#include "DisjointSet.h"
-#include "GraphPartitioner.h"
+#include "Common.hpp"
+#include "Cluster.hpp"
+#include "Parallel.hpp"
+#include "StridedView.hpp"
+#include "EdgeHash.hpp"
+#include "VectorMath.hpp"
+#include "Adjacency.hpp"
+#include "DisjointSet.hpp"
+#include "GraphPartitioner.hpp"
 
 struct MeshBuildVertexView {
     std::vector<Point3f> Positions;

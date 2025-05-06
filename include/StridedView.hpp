@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 template<typename InElementType, typename InSizeType = int32>
 class StridedView;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 template<typename FuncType>
 static inline void ParallelFor(const std::string& message, size_t count, int32 batch_size, FuncType&& Function) {

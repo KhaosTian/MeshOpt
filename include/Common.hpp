@@ -17,7 +17,7 @@
 #include <map>
 #include <unordered_map>
 
-#include "VectorMath.h"
+#include "VectorMath.hpp"
 
 #define DEBUG_BREAK() __debugbreak()
 

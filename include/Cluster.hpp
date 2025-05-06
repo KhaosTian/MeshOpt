@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "VectorMath.h"
-#include "Math/BoundingBox.h"
+#include "Common.hpp"
+#include "VectorMath.hpp"
+#include "Math/BoundingBox.hpp"
 
 class Cluster {
 public:
