@@ -13,9 +13,9 @@ target("meshopt")
     set_kind("binary")
 
     add_files("src/**.cpp")
-    add_headerfiles("src/**.h")
-    add_includedirs("src")
-
+    add_headerfiles("include/**.h")
+    
+    add_includedirs("include")
     add_includedirs("ext/include")
     add_linkdirs("ext/lib")
 
