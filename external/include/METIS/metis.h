@@ -52,13 +52,7 @@
  modifications on other architectures.
 --------------------------------------------------------------------------*/
 
-#define METIS_BUILD_64BIT 1
-
-#if METIS_BUILD_64BIT
-    #define IDXTYPEWIDTH 64
-#else
-    #define IDXTYPEWIDTH 32
-#endif
+#define IDXTYPEWIDTH 32
 
 /*--------------------------------------------------------------------------
  Specifies the data type that will hold floating-point style information.

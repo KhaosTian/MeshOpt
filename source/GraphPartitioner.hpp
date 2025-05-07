@@ -5,6 +5,10 @@
 #include "Common.hpp"
 #include "DisjointSet.hpp"
 #include "Math/BoundingBox.hpp"
+#include <cstddef>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 class GraphPartitioner {
 public:
@@ -333,7 +337,7 @@ inline GraphPartitioner::GraphData* GraphPartitioner::NewGraph(uint32 num_adjace
     graph->num                = num_elements;
     graph->adjacency.reserve(num_adjacency);
     graph->adjacency_cost.reserve(num_adjacency);
-    graph->adjacency_offset.resize(num_elements + 1);
+    graph->adjacency_offset.resize(graph->adjacency_offset.size() + num_elements + 1);
 
     return nullptr;
 }
@@ -345,6 +349,91 @@ inline void GraphPartitioner::AddLocalityLinks(GraphData* graph, uint32 index, i
 }
 
 inline void GraphPartitioner::Partition(GraphData* graph) {
+    // 图节点数小于等于最大分区大小时，执行多分区逻辑
+    if (graph->num <= max_partition_size) {
+        partition_ids.resize(partition_ids.size() + num_elements);
+
+        // 目标分区大小，去最大最小的均值
+        const int32 target_partition_size = (min_partition_size + max_partition_size) / 2;
+        // 向上取整计算分区数
+        const int32 target_num_partitions = DivideAndRoundUp(graph->num, target_num_partitions);
+
+        idx_t num_constraints = 1;
+        idx_t num_parts       = target_num_partitions;
+        idx_t edges_cut       = 0; // 被切割的边数
+
+        // 负载均衡参数
+        idx_t options[METIS_NOPTIONS];
+        METIS_SetDefaultOptions(options);
+
+        options[METIS_OPTION_UFACTOR] = 200; // (1000*max_partition_size*target_num_Partisions)/num_elements-1000;
+
+        // 修改metis源码只使用32位int
+        int r = METIS_PartGraphKway(
+            &graph->num, // 图节点数
+            &num_constraints, //
+            graph->adjacency_offset.data(),
+            graph->adjacency.data(),
+            nullptr,
+            nullptr,
+            graph->adjacency_cost.data(),
+            &num_parts, // 分区数
+            nullptr,
+            nullptr,
+            options,
+            &edges_cut,
+            partition_ids.data()
+        );
+
+        // 处理内存分配失败的情况
+        if (r != METIS_OK) {
+            throw std::runtime_error("failed to partition graph");
+        }
+
+        if (r == METIS_OK) {
+            // 统计每个分区的元素数量
+            std::vector<uint32> element_count;
+            element_count.resize(target_num_partitions, 0);
+            for (uint32 i = 0; i < num_elements; i++) {
+                element_count[partition_ids[i]]++;
+            }
+
+            // 生成分区的range
+            uint32 begin = 0;
+            ranges.resize(ranges.size() + target_num_partitions);
+            for (int32 partition_index = 0; partition_index < target_num_partitions; partition_index++) {
+                // 计算每个分区的range
+                ranges[partition_index] = { begin, begin + element_count[partition_index] };
+                begin += element_count[partition_index];
+                element_count[partition_index] = 0;
+            }
+
+            std::vector<uint32> old_indices;
+            std::swap(indices, old_indices);
+            indices.resize(indices.size() + num_elements);
+            // 将元素按照分区的顺序排列
+            for (uint32 i = 0; i < num_elements; i++) {
+                uint32 partition_index = partition_ids[i];
+                uint32 offset          = ranges[partition_index].begin;
+                uint32 num             = element_count[partition_index]++;
+
+                indices[offset + num] = old_indices[i];
+            }
+
+            partition_ids.clear();
+            partition_ids.shrink_to_fit();
+        }
+    }
+
+    // 图元素数量超过最大值，单分区
+    else {
+        ranges.push_back({ 0, num_elements });
+    }
+
+    // 更新sorted_to
+    for (uint32 i = 0; i < num_elements; i++) {
+        sorted_to[indices[i]] = i;
+    }
 }
 
 inline void GraphPartitioner::ParititionStrict(GraphData* graph, bool enable_threaded) {

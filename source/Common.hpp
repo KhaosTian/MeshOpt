@@ -82,3 +82,8 @@ inline static uint32 Murmur32(std::initializer_list<uint32> init_list) {
 
     return MurmurFinalize32(hash);
 }
+
+template<class T>
+inline static constexpr T DivideAndRoundUp(T Dividend, T Divisor) {
+    return (Dividend + Divisor - 1) / Divisor;
+}
